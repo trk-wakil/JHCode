@@ -111,32 +111,44 @@ if (document.readyState == 'loading') {
 
 
 
-function getCurrentGameFromServer() {
+async function getCurrentGameFromServer() {
     var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
-    fetch(uri)
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            //if no current game exists, allow only StartNewGame
-            if (!data) {
-                console.log("NO GAME EXISTS");
-                $("#ResumeGameDiv").addClass('disabledDiv');
-                $("#NewGameDiv").removeClass('disabledDiv');
-            }
-            //else allow only ResumeGame or EndGame
-            else {
-                console.log("found current game");
-                $("#ResumeGameDiv").removeClass('disabledDiv');
-                $("#NewGameDiv").addClass('disabledDiv');
+    var data = await (await fetch(uri)).json();
 
-                //currentGame = new CurrentGame(data.cards, data.currentNumOfFlips, data.lastFlippedCardId);
-            }
-        });
+    //if no current game exists, allow only StartNewGame
+    if (!data) {
+        console.log("NO GAME EXISTS");
+        $("#ResumeGameDiv").addClass('disabledDiv');
+        $("#NewGameDiv").removeClass('disabledDiv');
+    }
+    //else allow only ResumeGame or EndGame
+    else {
+        console.log("found current game");
+        $("#ResumeGameDiv").removeClass('disabledDiv');
+        $("#NewGameDiv").addClass('disabledDiv');
+
+        //currentGame = new CurrentGame(data.cards, data.currentNumOfFlips, data.lastFlippedCardId);
+    }
 }
 
 
 
+
+async function initNewGame() {
+    await goFetchCards();
+    
+    let cards = Array.from(document.getElementsByClassName('card'));
+
+    console.log("cards=  " + cards.length);
+    let game = new MixOrMatch(500, cards);
+    game.startGame();
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            game.flipCard(card);
+        });
+    });
+}
 
 
 
@@ -194,32 +206,26 @@ async function ready() {
     await getCurrentGameFromServer();
     //await goFetchCards();
 
-    var testVar = document.getElementsByClassName('card');
-    var allOrangeJuiceQuery = document.querySelectorAll('card');
-    console.log("allOrangeJuiceQuery=  " + allOrangeJuiceQuery.length);
-    let cards = Array.from(document.getElementsByClassName('card'));
+    // let cards = Array.from(document.getElementsByClassName('card'));
 
-    console.log("cards=  " + cards.length);
-    let game = new MixOrMatch(100, cards);
+    // console.log("cards=  " + cards.length);
+    // let game = new MixOrMatch(100, cards);
 
     overlays.forEach(overlay => {
         overlay.addEventListener('click', () => {
             overlay.classList.remove('visible');
-            game.startGame();
+            //game.startGame();
         });
     });
 
 
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            game.flipCard(card);
-        });
-    });
+    // cards.forEach(card => {
+    //     card.addEventListener('click', () => {
+    //         game.flipCard(card);
+    //     });
+    // });
 
 
-    $('#ResumeGameBtn').click(function() { 
-        
-    }); 
 }
 
 

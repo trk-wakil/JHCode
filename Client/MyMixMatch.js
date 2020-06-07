@@ -1,4 +1,50 @@
 
+
+class ApiHelper {
+    constructor() {
+        this.uri = '';
+        this.cardsFromServer;
+        this.maxNumOfCardsAllowed = 0;
+
+    }
+
+    getCardsFromServer() {
+        return this.cardsFromServer.cards;
+    }
+
+    async getCurrentGameFromServer() {
+        var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
+        var data = await (await fetch(uri)).json();
+    
+        //if no current game exists, allow only StartNewGame
+        if (!data) {
+            console.log("NO GAME EXISTS");
+            $("#ResumeGameDiv").addClass('disabledDiv');
+            $("#NewGameDiv").removeClass('disabledDiv');
+        }
+        //else allow only ResumeGame or EndGame
+        else {
+            console.log("found current game");
+            console.log(data.currentNumOfFlips);
+            $("#ResumeGameDiv").removeClass('disabledDiv');
+            $("#NewGameDiv").addClass('disabledDiv');
+        }
+
+        this.cardsFromServer = data;
+    }
+    
+
+    test() {
+        console.log('HERE');
+    }
+}
+
+
+//TODO do this for now but the better way is to add onClick events to each of the resources after 
+//  an instance has been created.. maybe in ready()
+let apiHelper;
+
+
 class MixOrMatch {
     constructor(totalTime, cards) {
         this.cardsArray = cards;
@@ -13,7 +59,6 @@ class MixOrMatch {
         this.timeRemaining = this.totalTime;
         this.cardToCheck = null;
         this.matchedCards = [];
-        this.busy = true;
         this.hideCards();
         this.timer.innerText = this.timeRemaining;
         this.ticker.innerText = this.totalClicks;
@@ -57,6 +102,7 @@ class MixOrMatch {
                 this.cardToCheck = card;
             }
         }
+        else { console.log('canFlipCard = false'); }
     }
     checkForCardMatch(card) {
         if(this.getCardType(card) === this.getCardType(this.cardToCheck))
@@ -93,6 +139,9 @@ class MixOrMatch {
         return card.getElementsByClassName('card-value')[0].src;
     }
     canFlipCard(card) {
+        console.log(!this.busy);
+        console.log(!this.matchedCards.includes(card));
+        console.log(card !== this.cardToCheck);
         return !this.busy && !this.matchedCards.includes(card) && card !== this.cardToCheck;
     }
 }
@@ -125,6 +174,7 @@ function sendFlipRequest(card) {
 async function getCurrentGameFromServer() {
     var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
     var data = await (await fetch(uri)).json();
+    console.log('***-->  ' + data.currentNumOfFlips);
 
     //if no current game exists, allow only StartNewGame
     if (!data) {
@@ -135,9 +185,12 @@ async function getCurrentGameFromServer() {
     //else allow only ResumeGame or EndGame
     else {
         console.log("found current game");
+        console.log('===>  ' + data.currentNumOfFlips);
         $("#ResumeGameDiv").removeClass('disabledDiv');
         $("#NewGameDiv").addClass('disabledDiv');
     }
+
+    console.log('--->  ' + data.currentNumOfFlips);
 }
 
 
@@ -178,6 +231,12 @@ async function initNewGame() {
 }
 
 
+
+function continueGameFromServer() {
+    var currentGameCards = apiHelper.getCardsFromServer();
+    console.log(currentGameCards);
+    setupGridAndGame(currentGameCards);
+}
 
 
 
@@ -230,9 +289,13 @@ function fillGrid(data) {
 
 
 async function ready() {
-    let overlays = Array.from(document.getElementsByClassName('overlay-text'));
-    await getCurrentGameFromServer();
-    
+
+    //TODO handle failed connection
+    apiHelper = new ApiHelper();
+    await apiHelper.getCurrentGameFromServer();
+    //await getCurrentGameFromServer();
+
+    let overlays = Array.from(document.getElementsByClassName('overlay-text'));    
     overlays.forEach(overlay => {
         overlay.addEventListener('click', () => {
             overlay.classList.remove('visible');

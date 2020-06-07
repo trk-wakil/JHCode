@@ -14,11 +14,6 @@ class MixOrMatch {
         this.cardToCheck = null;
         this.matchedCards = [];
         this.busy = true;
-        setTimeout(() => {
-            this.shuffleCards(this.cardsArray);
-            this.countdown = this.startCountdown();
-            this.busy = false;
-        }, 500)
         this.hideCards();
         this.timer.innerText = this.timeRemaining;
         this.ticker.innerText = this.totalClicks;
@@ -147,12 +142,9 @@ async function getCurrentGameFromServer() {
 
 
 
-
-async function initNewGame() {
-    await goFetchCards();
-    
+function setupGridAndGame(cardsFromServer) {
+    fillGrid(cardsFromServer);
     let cards = Array.from(document.getElementsByClassName('card'));
-
     console.log("cards=  " + cards.length);
     let game = new MixOrMatch(500, cards);
     game.startGame();
@@ -166,13 +158,35 @@ async function initNewGame() {
 
 
 
+async function initNewGame() {
+    //await goFetchCards().setupGridAndGame();
+
+    goFetchCards().then((data) => {
+        setupGridAndGame(data);
+    });
+    
+    // let cards = Array.from(document.getElementsByClassName('card'));
+    // console.log("cards=  " + cards.length);
+    // let game = new MixOrMatch(500, cards);
+    // game.startGame();
+
+    // cards.forEach(card => {
+    //     card.addEventListener('click', () => {
+    //         game.flipCard(card);
+    //     });
+    // });
+}
+
+
+
 
 
 async function goFetchCards() {
     var uri = 'https://localhost:44355/api/Game/StartNewGame/0';
 
     var result = await (await fetch(uri)).json();
-    fillGrid(result);    
+    return result;
+    //fillGrid(result);    
 }
 
 

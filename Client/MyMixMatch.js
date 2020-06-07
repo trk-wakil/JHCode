@@ -47,6 +47,9 @@ class MixOrMatch {
         });
     }
     flipCard(card) {
+        //Do the matching here as well as in server side.
+        //but first, alert server of flipped card
+        sendFlipRequest(card);
         console.log("CLICKED");
         if(this.canFlipCard(card)) {
             this.totalClicks++;
@@ -110,6 +113,19 @@ if (document.readyState == 'loading') {
 
 
 
+function sendFlipRequest(card) {
+    var uri = 'https://localhost:44355/api/Game/FlipCard/' + card.id;
+    //Think about the response.. do we need it?
+    //also, insert id in the fetch operation
+    fetch(uri)
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            console.log('from Server:  ' +data);
+        });
+}
+
 
 async function getCurrentGameFromServer() {
     var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
@@ -126,8 +142,6 @@ async function getCurrentGameFromServer() {
         console.log("found current game");
         $("#ResumeGameDiv").removeClass('disabledDiv');
         $("#NewGameDiv").addClass('disabledDiv');
-
-        //currentGame = new CurrentGame(data.cards, data.currentNumOfFlips, data.lastFlippedCardId);
     }
 }
 
@@ -189,6 +203,7 @@ function fillGrid(data) {
         cardFront.appendChild(imgFront);
 
         var newCard = document.createElement("div");
+        newCard.setAttribute("id", cardData.id);
         newCard.classList.add("card");
         newCard.appendChild(cardBack);
         newCard.appendChild(cardFront);
@@ -202,28 +217,13 @@ function fillGrid(data) {
 
 async function ready() {
     let overlays = Array.from(document.getElementsByClassName('overlay-text'));
-    ///HERE
     await getCurrentGameFromServer();
-    //await goFetchCards();
-
-    // let cards = Array.from(document.getElementsByClassName('card'));
-
-    // console.log("cards=  " + cards.length);
-    // let game = new MixOrMatch(100, cards);
-
+    
     overlays.forEach(overlay => {
         overlay.addEventListener('click', () => {
             overlay.classList.remove('visible');
-            //game.startGame();
         });
     });
-
-
-    // cards.forEach(card => {
-    //     card.addEventListener('click', () => {
-    //         game.flipCard(card);
-    //     });
-    // });
 
 
 }

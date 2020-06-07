@@ -109,6 +109,39 @@ if (document.readyState == 'loading') {
 
 
 
+
+
+function getCurrentGameFromServer() {
+    var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
+    fetch(uri)
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            //if no current game exists, allow only StartNewGame
+            if (!data) {
+                console.log("NO GAME EXISTS");
+                $("#ResumeGameDiv").addClass('disabledDiv');
+                $("#NewGameDiv").removeClass('disabledDiv');
+            }
+            //else allow only ResumeGame or EndGame
+            else {
+                console.log("found current game");
+                $("#ResumeGameDiv").removeClass('disabledDiv');
+                $("#NewGameDiv").addClass('disabledDiv');
+
+                //currentGame = new CurrentGame(data.cards, data.currentNumOfFlips, data.lastFlippedCardId);
+            }
+        });
+}
+
+
+
+
+
+
+
+
 async function goFetchCards() {
     var uri = 'https://localhost:44355/api/Game/StartNewGame/0';
 
@@ -158,7 +191,8 @@ function fillGrid(data) {
 async function ready() {
     let overlays = Array.from(document.getElementsByClassName('overlay-text'));
     ///HERE
-    await goFetchCards();
+    await getCurrentGameFromServer();
+    //await goFetchCards();
 
     var testVar = document.getElementsByClassName('card');
     var allOrangeJuiceQuery = document.querySelectorAll('card');
@@ -181,4 +215,11 @@ async function ready() {
             game.flipCard(card);
         });
     });
+
+
+    $('#ResumeGameBtn').click(function() { 
+        
+    }); 
 }
+
+

@@ -212,3 +212,9 @@ body {
     align-items: center;
   }
 }
+
+
+.disabledDiv {
+  pointer-events: none;
+  opacity: 0.4;
+}

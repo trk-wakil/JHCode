@@ -1,4 +1,108 @@
 
+class GameManager {
+    constructor() {
+        this.apiHelper = new ApiHelper();
+        this.currentActiveGame;      
+        
+    }
+
+
+    async initGame() {
+        var activeGameData = await this.apiHelper.getActiveGameFromServer();
+
+        //if no current game exists, allow only StartNewGame
+        if (!activeGameData) {
+            console.log("NO GAME EXISTS");
+            $("#ResumeGameDiv").addClass('disabledDiv');
+            $("#NewGameDiv").removeClass('disabledDiv');
+        }
+        //else allow only ResumeGame or EndGame
+        else {
+            console.log("found current game");
+            console.log(activeGameData.currentNumOfFlips);
+            $("#ResumeGameDiv").removeClass('disabledDiv');
+            $("#NewGameDiv").addClass('disabledDiv');
+        }
+
+        this.currentActiveGame = activeGameData;
+    }
+
+
+    async resumeGame() {
+        console.log('-*-*-*>   ' + this.currentActiveGame.currentNumOfFlips);
+        this.setupGridAndGame(this.currentActiveGame.cards);
+    }
+
+
+    async beginNewGame() {
+        this.apiHelper.goFetchCards().then((data) => {
+            this.setupGridAndGame(data);
+        });
+    }
+
+    
+    setupGridAndGame(cardsFromServer) {
+
+        this.fillGrid(cardsFromServer);
+
+        let cards = Array.from(document.getElementsByClassName('card'));
+        console.log("cards=  " + cards.length);
+        this.currentActiveGame = new MixOrMatch(500, cards);
+        this.currentActiveGame.startGame();
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                this.currentActiveGame.flipCard(card);
+            });
+        });
+    }
+
+    
+    fillGrid(data) {
+        console.log(data[0]);
+
+        var game_container = document.getElementsByClassName('game-container')[0];
+
+        for (var i=0; i < data.length; i++) {
+            var cardData = data[i];
+                
+            var cardBack = document.createElement("div");
+            cardBack.classList.add("card-back");
+            cardBack.classList.add("card-face");
+
+            var imgBack = document.createElement("img");
+            imgBack.classList.add("spider");
+            imgBack.src = "Assets/Spider.png";
+            cardBack.appendChild(imgBack);
+            
+            var cardFront = document.createElement("div");
+            cardFront.classList.add("card-front");
+            cardFront.classList.add("card-face");
+
+            var imgFront = document.createElement("img");
+            imgFront.classList.add("card-value");
+            imgFront.src = "data:image/png;base64," + cardData.img;
+            cardFront.appendChild(imgFront);
+
+            var newCard = document.createElement("div");
+            newCard.setAttribute("id", cardData.id);
+            newCard.classList.add("card");
+            newCard.appendChild(cardBack);
+            newCard.appendChild(cardFront);
+            
+            console.log("game_container=  " + game_container);
+            game_container.appendChild(newCard);
+
+        }
+    }
+
+
+
+
+
+}
+
+
 
 
 class ApiHelper {
@@ -13,25 +117,18 @@ class ApiHelper {
         return this.cardsFromServer.cards;
     }
 
-    async getCurrentGameFromServer() {
+    async getActiveGameFromServer() {
         var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
         var data = await (await fetch(uri)).json();
-    
-        //if no current game exists, allow only StartNewGame
-        if (!data) {
-            console.log("NO GAME EXISTS");
-            $("#ResumeGameDiv").addClass('disabledDiv');
-            $("#NewGameDiv").removeClass('disabledDiv');
-        }
-        //else allow only ResumeGame or EndGame
-        else {
-            console.log("found current game");
-            console.log(data.currentNumOfFlips);
-            $("#ResumeGameDiv").removeClass('disabledDiv');
-            $("#NewGameDiv").addClass('disabledDiv');
-        }
+        return data;
 
-        this.cardsFromServer = data;
+    }
+
+        
+    async goFetchCards() {
+        var uri = 'https://localhost:44355/api/Game/StartNewGame/0';
+        var result = await (await fetch(uri)).json();
+        return result;
     }
     
 
@@ -40,10 +137,6 @@ class ApiHelper {
     }
 }
 
-
-//TODO do this for now but the better way is to add onClick events to each of the resources after 
-//  an instance has been created.. maybe in ready()
-let apiHelper;
 
 
 class MixOrMatch {
@@ -148,12 +241,6 @@ class MixOrMatch {
 }
 
 
-if (document.readyState == 'loading') {
-    document.addEventListener('DOMContentLoaded', ready);
-} else {
-    ready();
-}
-
 
 
 
@@ -172,128 +259,35 @@ function sendFlipRequest(card) {
 }
 
 
-async function getCurrentGameFromServer() {
-    var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
-    var data = await (await fetch(uri)).json();
-    console.log('***-->  ' + data.currentNumOfFlips);
 
-    //if no current game exists, allow only StartNewGame
-    if (!data) {
-        console.log("NO GAME EXISTS");
-        $("#ResumeGameDiv").addClass('disabledDiv');
-        $("#NewGameDiv").removeClass('disabledDiv');
-    }
-    //else allow only ResumeGame or EndGame
-    else {
-        console.log("found current game");
-        console.log('===>  ' + data.currentNumOfFlips);
-        $("#ResumeGameDiv").removeClass('disabledDiv');
-        $("#NewGameDiv").addClass('disabledDiv');
-    }
 
-    console.log('--->  ' + data.currentNumOfFlips);
+if (document.readyState == 'loading') {
+    document.addEventListener('DOMContentLoaded', ready);
+} else {
+    ready();
 }
 
 
 
-function setupGridAndGame(cardsFromServer) {
-    fillGrid(cardsFromServer);
-    let cards = Array.from(document.getElementsByClassName('card'));
-    console.log("cards=  " + cards.length);
-    let game = new MixOrMatch(500, cards);
-    game.startGame();
-
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            game.flipCard(card);
-        });
-    });
-}
 
 
 
-async function initNewGame() {
-    //await goFetchCards().setupGridAndGame();
-
-    goFetchCards().then((data) => {
-        setupGridAndGame(data);
-    });
-    
-    // let cards = Array.from(document.getElementsByClassName('card'));
-    // console.log("cards=  " + cards.length);
-    // let game = new MixOrMatch(500, cards);
-    // game.startGame();
-
-    // cards.forEach(card => {
-    //     card.addEventListener('click', () => {
-    //         game.flipCard(card);
-    //     });
-    // });
-}
 
 
 
-function continueGameFromServer() {
-    var currentGameCards = apiHelper.getCardsFromServer();
-    console.log(currentGameCards);
-    setupGridAndGame(currentGameCards);
-}
 
 
 
-async function goFetchCards() {
-    var uri = 'https://localhost:44355/api/Game/StartNewGame/0';
-
-    var result = await (await fetch(uri)).json();
-    return result;
-    //fillGrid(result);    
-}
-
-
-function fillGrid(data) {
-    console.log(data[0]);
-
-    var game_container = document.getElementsByClassName('game-container')[0];
-
-    for (var i=0; i < data.length; i++) {
-        var cardData = data[i];
-            
-        var cardBack = document.createElement("div");
-        cardBack.classList.add("card-back");
-        cardBack.classList.add("card-face");
-
-        var imgBack = document.createElement("img");
-        imgBack.classList.add("spider");
-        imgBack.src = "Assets/Spider.png";
-        cardBack.appendChild(imgBack);
-        
-        var cardFront = document.createElement("div");
-        cardFront.classList.add("card-front");
-        cardFront.classList.add("card-face");
-
-        var imgFront = document.createElement("img");
-        imgFront.classList.add("card-value");
-        imgFront.src = "data:image/png;base64," + cardData.img;
-        cardFront.appendChild(imgFront);
-
-        var newCard = document.createElement("div");
-        newCard.setAttribute("id", cardData.id);
-        newCard.classList.add("card");
-        newCard.appendChild(cardBack);
-        newCard.appendChild(cardFront);
-        
-        console.log("game_container=  " + game_container);
-        game_container.appendChild(newCard);
-
-    }
-}
 
 
 async function ready() {
 
+    let gameManager = new GameManager();
+    await gameManager.initGame();
+
     //TODO handle failed connection
-    apiHelper = new ApiHelper();
-    await apiHelper.getCurrentGameFromServer();
+    //apiHelper = new ApiHelper();
+    //await apiHelper.getCurrentGameFromServer();
     //await getCurrentGameFromServer();
 
     let overlays = Array.from(document.getElementsByClassName('overlay-text'));    
@@ -303,7 +297,11 @@ async function ready() {
         });
     });
 
+    console.log('CHECK 1');
+    document.getElementById('NewGameBtn').addEventListener('click', () => { gameManager.beginNewGame(); });
+    document.getElementById('ResumeGameBtn').addEventListener('click', () => { gameManager.resumeGame(); });
+
+    console.log('CHECK A');
+
 
 }
-
-

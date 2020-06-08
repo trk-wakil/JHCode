@@ -9,23 +9,22 @@ content-type: application/json
 
 # GET
 
-GET https://localhost:44381/Api/Values
+GET https://localhost:44355/api/Game/GetCardsForNewGame/
 content-type: application/json
 
 {
-  "value": "3"
+  "numOfCards" : 5
 }
-
 
 ###
 
-# POST
+# GET
 
-POST https://localhost:44381/Api/Values
+GET https://localhost:44355/api/Game/TestInputVal/1
 content-type: application/json
 
 {
-  "value": 3
+  "id": 3
 }
 
 

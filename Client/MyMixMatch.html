@@ -14,20 +14,26 @@
 
   <!-- Container for Buttons and Controls -->
   <div>
-    <div id="PlayAsGuestDiv">
-      <button id="PlayAsGuestBtn" > Play As No One </button>
-      <button id="PlayAsMeBtn" >Enter Player Name</button>
-      <input type="text" id="PlayerName" />
-    </div>
     <div id="NewGameDiv">
+      <button id="PlayAsGuestBtn" > Play Now As No One </button>
+      <button id="PlayAsMeBtn" > Play As: </button>
+      <input type="text" id="PlayerName" />
+      <label>Number of unique cards to play with: </label>
+      <input type="number" min=0 id="NumUniqueCards" placeholder=0 />     
+    </div>
+    <!-- <div id="NewGameDiv">
       <button id="NewGameBtn" >Start New Game</button>
       <input type="number" min=0 id="NumUniqueCards" placeholder=0 />
-    </div>
+    </div> -->
     <div id="ResumeGameDiv">
       <button id="ResumeGameBtn">Continue My Game</button>
     </div>
     <div id="EndGameDiv">
       <button id="EndGameBtn">End My Game</button>
+    </div>
+
+    <div>
+      <button id="TestCallsBtn" onclick="tryAjax()">TEST My Game</button>
     </div>
   </div>
 

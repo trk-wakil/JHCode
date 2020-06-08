@@ -47,7 +47,7 @@ class GameManager {
 
         let cards = Array.from(document.getElementsByClassName('card'));
         console.log("cards=  " + cards.length);
-        this.currentActiveGame = new MixOrMatch(500, cards);
+        this.currentActiveGame = new ActiveGameManager(cards, this.apiHelper);
         this.currentActiveGame.startGame();
 
         cards.forEach(card => {
@@ -139,12 +139,11 @@ class ApiHelper {
 
 
 
-class MixOrMatch {
-    constructor(totalTime, cards) {
+class ActiveGameManager {
+    constructor(cards, apiHelper) {
         this.cardsArray = cards;
-        this.totalTime = totalTime;
-        this.timeRemaining = totalTime;
-        this.timer = document.getElementById('time-remaining')
+        this.apiHelper = apiHelper;
+        //TODO ticker is score. Maybe allow passing it here for resumed game
         this.ticker = document.getElementById('flips');
     }
 
@@ -154,26 +153,13 @@ class MixOrMatch {
         this.cardToCheck = null;
         this.matchedCards = [];
         this.hideCards();
-        this.timer.innerText = this.timeRemaining;
         this.ticker.innerText = this.totalClicks;
-    }
-    startCountdown() {
-        return setInterval(() => {
-            this.timeRemaining--;
-            this.timer.innerText = this.timeRemaining;
-            if(this.timeRemaining === 0)
-                this.gameOver();
-        }, 1000);
-    }
-    gameOver() {
-        clearInterval(this.countdown);
-        this.audioController.gameOver();
-        document.getElementById('game-over-text').classList.add('visible');
     }
     victory() {
         clearInterval(this.countdown);
         document.getElementById('victory-text').classList.add('visible');
     }
+    //TODO exclude previously uncovered card when hiding on resume game
     hideCards() {
         this.cardsArray.forEach(card => {
             card.classList.remove('visible');
@@ -222,6 +208,7 @@ class MixOrMatch {
             this.busy = false;
         }, 1000);
     }
+    //TODO not sure I need this
     shuffleCards(cardsArray) { // Fisher-Yates Shuffle Algorithm.
         for (let i = cardsArray.length - 1; i > 0; i--) {
             let randIndex = Math.floor(Math.random() * (i + 1));

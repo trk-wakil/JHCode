@@ -1,6 +1,8 @@
 
 class GameManager {
     constructor() {
+
+        //TODO handle failed connection
         this.apiHelper = new ApiHelper();
         this.currentActiveGame;      
         
@@ -13,23 +15,23 @@ class GameManager {
         //if no current game exists, allow only StartNewGame
         if (!activeGameData) {
             console.log("NO GAME EXISTS");
-            $("#ResumeGameDiv").addClass('disabledDiv');
-            $("#NewGameDiv").removeClass('disabledDiv');
+            this.handleElementEnable('#NewGameDiv', true);
+            this.handleElementEnable('#ResumeGameDiv', false);
+            this.handleElementEnable('#EndGameDiv', false);
         }
         //else allow only ResumeGame or EndGame
         else {
             console.log("found current game");
-            console.log(activeGameData.currentNumOfFlips);
-            $("#ResumeGameDiv").removeClass('disabledDiv');
-            $("#NewGameDiv").addClass('disabledDiv');
+            this.handleElementEnable('#NewGameDiv', false);
+            this.handleElementEnable('#ResumeGameDiv', true);
+            this.handleElementEnable('#EndGameDiv', true);
         }
 
         this.currentActiveGame = activeGameData;
     }
 
 
-    async resumeGame() {
-        console.log('-*-*-*>   ' + this.currentActiveGame.currentNumOfFlips);
+    resumeGame() {
         this.setupGridAndGame(this.currentActiveGame.cards);
     }
 
@@ -38,6 +40,22 @@ class GameManager {
         this.apiHelper.goFetchCards().then((data) => {
             this.setupGridAndGame(data);
         });
+
+        this.handleElementEnable('#NewGameDiv', false);
+        this.handleElementEnable('#ResumeGameDiv', false);
+        this.handleElementEnable('#EndGameDiv', true);
+    }
+
+    //TODO handle respone
+    async endGame() {
+        this.apiHelper.endGame();
+        var game_container = document.getElementsByClassName('game-container')[0];
+        //game_container.innerHTML = "";
+
+        this.handleElementEnable('#NewGameDiv', true);
+        this.handleElementEnable('#ResumeGameDiv', false);
+        this.handleElementEnable('#EndGameDiv', false);
+
     }
 
     
@@ -62,6 +80,7 @@ class GameManager {
         console.log(data[0]);
 
         var game_container = document.getElementsByClassName('game-container')[0];
+        //game_container.innerHTML = "";
 
         for (var i=0; i < data.length; i++) {
             var cardData = data[i];
@@ -97,6 +116,14 @@ class GameManager {
     }
 
 
+    handleElementEnable(elementId, enable) {
+        if (enable) {
+            $(elementId).removeClass('disabledDiv');
+        }
+        else {
+            $(elementId).addClass('disabledDiv');
+        }
+    }
 
 
 
@@ -107,7 +134,7 @@ class GameManager {
 
 class ApiHelper {
     constructor() {
-        this.uri = '';
+        this.baseURL = 'https://localhost:44355/api/Game/';
         this.cardsFromServer;
         this.maxNumOfCardsAllowed = 0;
 
@@ -118,22 +145,43 @@ class ApiHelper {
     }
 
     async getActiveGameFromServer() {
-        var uri = 'https://localhost:44355/api/Game/GetCurrentGame';
+        var uri = this.baseURL + 'GetCurrentGame';
         var data = await (await fetch(uri)).json();
         return data;
-
     }
 
         
     async goFetchCards() {
-        var uri = 'https://localhost:44355/api/Game/StartNewGame/0';
+        //TODO use the operation in fetch and allow using the variable
+        var uri = this.baseURL + 'StartNewGame/0';
         var result = await (await fetch(uri)).json();
         return result;
     }
-    
 
-    test() {
-        console.log('HERE');
+    
+    sendFlipRequest(card) {
+        var uri = this.baseURL + 'FlipCard/' + card.id;
+        //Think about the response.. do we need it?
+        //also, insert id in the fetch operation
+        fetch(uri)
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                console.log('from Server:  ' +data);
+            });
+    }
+
+    endGame() {
+        //TODO consider asyn call here
+        var uri = this.baseURL + 'EndGame';
+        fetch(uri)
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                console.log('from Server:  ' +data);
+            });
     }
 }
 
@@ -169,7 +217,7 @@ class ActiveGameManager {
     flipCard(card) {
         //Do the matching here as well as in server side.
         //but first, alert server of flipped card
-        sendFlipRequest(card);
+        this.apiHelper.sendFlipRequest(card);
         console.log("CLICKED");
         if(this.canFlipCard(card)) {
             this.totalClicks++;
@@ -232,19 +280,6 @@ class ActiveGameManager {
 
 
 
-function sendFlipRequest(card) {
-    var uri = 'https://localhost:44355/api/Game/FlipCard/' + card.id;
-    //Think about the response.. do we need it?
-    //also, insert id in the fetch operation
-    fetch(uri)
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            console.log('from Server:  ' +data);
-        });
-}
-
 
 
 
@@ -272,11 +307,6 @@ async function ready() {
     let gameManager = new GameManager();
     await gameManager.initGame();
 
-    //TODO handle failed connection
-    //apiHelper = new ApiHelper();
-    //await apiHelper.getCurrentGameFromServer();
-    //await getCurrentGameFromServer();
-
     let overlays = Array.from(document.getElementsByClassName('overlay-text'));    
     overlays.forEach(overlay => {
         overlay.addEventListener('click', () => {
@@ -284,11 +314,8 @@ async function ready() {
         });
     });
 
-    console.log('CHECK 1');
     document.getElementById('NewGameBtn').addEventListener('click', () => { gameManager.beginNewGame(); });
     document.getElementById('ResumeGameBtn').addEventListener('click', () => { gameManager.resumeGame(); });
-
-    console.log('CHECK A');
-
+    document.getElementById('EndGameBtn').addEventListener('click', () => { gameManager.endGame(); });
 
 }

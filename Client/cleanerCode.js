@@ -4,16 +4,29 @@ class GameManager {
 
         //TODO handle failed connection
         this.apiHelper = new ApiHelper();
-        this.currentActiveGame;      
+        this.playerName = '';
+        this.maxCountOfCards;
+        this.currentActiveGame;
+        this.numberOfAvailableCards;
         
     }
 
 
+    async getMaxPlayableCards() {
+        var result = await this.apiHelper.getMaxPlayableCardsFromServer();
+        this.maxCountOfCards = result;
+        document.getElementById('NumUniqueCards').setAttribute('max', this.maxCountOfCards);
+        document.getElementById('NumUniqueCards').setAttribute('placeholder', this.maxCountOfCards);
+    }
+
+
     async initGame() {
-        var activeGameData = await this.apiHelper.getActiveGameFromServer();
+        var results = await this.apiHelper.getActiveGameFromServer();
+
+        this.currentActiveGame = results;
 
         //if no current game exists, allow only StartNewGame
-        if (!activeGameData) {
+        if (!this.currentActiveGame) {
             console.log("NO GAME EXISTS");
             this.handleElementEnable('#NewGameDiv', true);
             this.handleElementEnable('#ResumeGameDiv', false);
@@ -26,13 +39,24 @@ class GameManager {
             this.handleElementEnable('#ResumeGameDiv', true);
             this.handleElementEnable('#EndGameDiv', true);
         }
-
-        this.currentActiveGame = activeGameData;
+        
     }
 
 
     resumeGame() {
         this.setupGridAndGame(this.currentActiveGame.cards);
+    }
+
+
+    
+    async beginNewGameAsNoOne() {
+        this.apiHelper.goFetchCards().then((data) => {
+            this.setupGridAndGame(data);
+        });
+
+        this.handleElementEnable('#NewGameDiv', false);
+        this.handleElementEnable('#ResumeGameDiv', false);
+        this.handleElementEnable('#EndGameDiv', true);
     }
 
 
@@ -65,7 +89,7 @@ class GameManager {
 
         let cards = Array.from(document.getElementsByClassName('card'));
         console.log("cards=  " + cards.length);
-        this.currentActiveGame = new ActiveGameManager(cards, this.apiHelper);
+        this.currentActiveGame = new ActiveGameManager(this.playerName, cards, this.apiHelper);
         this.currentActiveGame.startGame();
 
         cards.forEach(card => {
@@ -140,9 +164,12 @@ class ApiHelper {
 
     }
 
-    getCardsFromServer() {
-        return this.cardsFromServer.cards;
+    async getMaxPlayableCardsFromServer() {
+        var uri = this.baseURL + 'GetCardCount';
+        var data = await (await fetch(uri)).json();
+        return data;
     }
+
 
     async getActiveGameFromServer() {
         var uri = this.baseURL + 'GetCurrentGame';
@@ -151,7 +178,7 @@ class ApiHelper {
     }
 
         
-    async goFetchCards() {
+    async goFetchCards(numOfUniqueCards, playerName) {
         //TODO use the operation in fetch and allow using the variable
         var uri = this.baseURL + 'StartNewGame/0';
         var result = await (await fetch(uri)).json();
@@ -188,10 +215,11 @@ class ApiHelper {
 
 
 class ActiveGameManager {
-    constructor(cards, apiHelper) {
+    constructor(playerName, cards, apiHelper) {
+        this.playerName = playerName;
         this.cardsArray = cards;
         this.apiHelper = apiHelper;
-        //TODO ticker is score. Maybe allow passing it here for resumed game
+        //TODO ticker is score. Maybe allow passing it here on resumed game
         this.ticker = document.getElementById('flips');
     }
 
@@ -217,7 +245,10 @@ class ActiveGameManager {
     flipCard(card) {
         //Do the matching here as well as in server side.
         //but first, alert server of flipped card
-        this.apiHelper.sendFlipRequest(card);
+        if (this.playerName) {
+            this.apiHelper.sendFlipRequest(card);
+        }
+        
         console.log("CLICKED");
         if(this.canFlipCard(card)) {
             this.totalClicks++;
@@ -292,19 +323,10 @@ if (document.readyState == 'loading') {
 
 
 
-
-
-
-
-
-
-
-
-
-
 async function ready() {
 
     let gameManager = new GameManager();
+    await gameManager.getMaxPlayableCards();
     await gameManager.initGame();
 
     let overlays = Array.from(document.getElementsByClassName('overlay-text'));    
@@ -313,6 +335,8 @@ async function ready() {
             overlay.classList.remove('visible');
         });
     });
+
+    document.getElementById('PlayAsGuestBtn').addEventListener('click', () => { gameManager.beginNewGameAsNoOne(); });
 
     document.getElementById('NewGameBtn').addEventListener('click', () => { gameManager.beginNewGame(); });
     document.getElementById('ResumeGameBtn').addEventListener('click', () => { gameManager.resumeGame(); });

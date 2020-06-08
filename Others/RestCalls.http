@@ -1,0 +1,80 @@
+
+
+# GET
+
+GET https://localhost:44355/api/Game/GetCardCount/
+content-type: application/json
+
+###
+
+# GET
+
+GET https://localhost:44381/Api/Values
+content-type: application/json
+
+{
+  "value": "3"
+}
+
+
+###
+
+# POST
+
+POST https://localhost:44381/Api/Values
+content-type: application/json
+
+{
+  "value": 3
+}
+
+
+
+
+######################################################################################
+
+## ThirdApp
+
+# GET
+
+GET https://localhost:44355/Api/Values
+content-type: application/json
+
+###
+
+# GET
+
+GET https://localhost:44355/Api/Values
+content-type: application/json
+
+{
+    "id": 44
+}
+
+
+
+
+###
+
+# POST
+
+POST https://localhost:44355/Api/Values
+content-type: application/json
+
+{
+  "value": "3",
+}
+
+
+
+###
+
+# POST
+
+PUT https://localhost:44355/Api/Values
+content-type: application/json
+
+{
+  "value": "3"
+}
+

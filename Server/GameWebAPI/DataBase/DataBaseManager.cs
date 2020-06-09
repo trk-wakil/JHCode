@@ -49,41 +49,6 @@ namespace GameWebAPI.DataBase
 
 
 
-
-        public GameState getActiveGame()
-        {
-            var gameState = new GameState();
-            var xmlSerializer = new XmlSerializer(typeof(GameState));
-
-            //first time ever
-            if (!File.Exists(ActiveGameXMLFile))
-            {
-                //StoreActiveGame(gameState);
-                return null;
-            }
-            else
-            {
-                using (FileStream fs = new FileStream(ActiveGameXMLFile, FileMode.Open, FileAccess.Read))
-                {
-                    gameState = xmlSerializer.Deserialize(fs) as GameState;
-                }
-            }
-
-            return gameState;
-        }
-
-
-        public void StoreActiveGame(GameState gameState)
-        {
-            var xmlSerializer = new XmlSerializer(typeof(GameState));
-
-            using (FileStream fs = new FileStream(ActiveGameXMLFile, FileMode.Create, FileAccess.Write))
-            {
-                xmlSerializer.Serialize(fs, gameState);
-            }
-        }
-
-
         public void DeleteActiveGame()
         {
             if (File.Exists(ActiveGameXMLFile))

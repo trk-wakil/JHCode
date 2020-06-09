@@ -6,7 +6,6 @@
   <!-- <meta http-equiv="X-UA-Compatible" content="ie=edge"> -->
   <link href="MyMixMatch.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-  <!-- <script src="cleanerCode.js" ></script> -->
   <script src="functions.js" ></script>
   <title>My Game</title>
 </head>
@@ -31,21 +30,22 @@
 
 
   <!-- Overlays -->
+  <div id="game-ended-text" class="overlay-text">
+    GAME ENDED
+  <span id="player-score" class="overlay-text-small">Click to Restart</span>
+  </div>
   <div id="welcome" class="overlay-text visible">
     Welcome
   </div>
   <div id="victory-text" class="overlay-text">
     VICTORY
-    <span class="overlay-text-small">Click to Restart</span>
+    <span id="player-score" class="overlay-text-small">Click to Restart</span>
   </div>
 
 
   <!-- The Game Container -->
   <div class="game-container">
     <div class="game-info-container">
-      <!-- <div class="game-info">
-        Time <span id="time-remaining">100</span>
-      </div> -->
       <div class="game-info">
         Flips <span id="flips">0</span>
       </div>

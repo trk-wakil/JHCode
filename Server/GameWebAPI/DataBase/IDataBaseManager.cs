@@ -10,10 +10,6 @@ namespace GameWebAPI.DataBase
     public interface IDataBaseManager
     {
 
-        GameState getActiveGame();
-
-        void StoreActiveGame(GameState gameState);
-
         void DeleteActiveGame();
 
         PlayerRecord GetPlayerRecord();

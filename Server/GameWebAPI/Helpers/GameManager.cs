@@ -118,25 +118,31 @@ namespace GameWebAPI.Helpers
         }
 
 
-        public void EndGame(bool win = false)
+        public PlayerRecord EndGame(bool win = false)
         {
-            var currentActiveGame = _dbManager.getActiveGame();
+            var activeGameCards = _dbManager.GetActiveGameCards();
             var playerRecord = _dbManager.GetPlayerRecord();
+
+            playerRecord.gamesPlayed++;
+            playerRecord.hasActiveGame = false;
+            playerRecord.lastFlippedCardId = -1;
+            playerRecord.currentNumOfFlips = 0;
 
             if (win)
             {
-                playerRecord.gamesPlayed++;
                 playerRecord.gamesWon++;
 
-                if (playerRecord.bestScore > currentActiveGame.currentNumOfFlips)
+                if (playerRecord.bestScore > playerRecord.currentNumOfFlips)
                 {
-                    playerRecord.bestScore = currentActiveGame.currentNumOfFlips;
-                    playerRecord.bestScoreNumberOfCards = currentActiveGame.cards.Count;
-                }                
+                    playerRecord.bestScore = playerRecord.currentNumOfFlips;
+                    playerRecord.bestScoreNumberOfCards = activeGameCards.cards.Count;
+                }
             }
 
             _dbManager.StorePlayerRecord(playerRecord);
             _dbManager.DeleteActiveGame();
+
+            return playerRecord;
         }
 
 

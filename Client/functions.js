@@ -1,12 +1,33 @@
 
+/***
+ * TODO list:
+ * add error messages for failed connections
+ * work more on the fethc methods
+ * use classes and constancts, especially for the API address
+ * clear the grid on game ending
+ * add a faq section to help explain the steps
+ * move the button divs around better
+ * display player scores
+ */
 
 
+
+let bestScore;
+let bestScoreNumberOfCards;
+let gamesPlayed;
+let gamesWon;
+
+let numOfFlips =-1;
+let lastFlippedCardId = -1
 
 
 class ActiveGameManager {
     constructor(cards) {
         this.cardsArray = cards;
         this.ticker = document.getElementById('flips');
+
+        this.lastFlippedCardIdFromServer;
+        this.numberOfFlipsFromServer;
     }
 
     startGame() {
@@ -16,14 +37,27 @@ class ActiveGameManager {
         this.cardToCheck = null;
         this.matchedCards = [];
         this.hideCards();
-        this.ticker.innerText = this.totalClicks;
+        if (this.numberOfFlipsFromServer > -1) {
+            this.ticker.innerText = numOfFlips;
+            this.totalClicks = numOfFlips;
+        }
+        else {
+            this.ticker.innerText = this.totalClicks;
+        }       
+        
 
     }
     victory() {
-        clearInterval(this.countdown);
+        gamesPlayed++;
+        gamesWon++;
+        if (bestScore > numOfFlips) {
+            bestScore = numOfFlips;
+            bestScoreNumberOfCards = this.cardsArray.length;
+        }
+
         document.getElementById('victory-text').classList.add('visible');
+        
     }
-    //TODO exclude previously uncovered card when hiding on resume game
     hideCards() {
         this.cardsArray.forEach(card => {
             console.log('what is flipped:  ' +card.getAttribute('flipped'));
@@ -31,6 +65,12 @@ class ActiveGameManager {
             // card.classList.remove('matched');    
             if (card.getAttribute('flipped') == 'true') {
                 card.classList.add('visible');
+                if (card.getAttribute('id') == this.lastFlippedCardIdFromServer) {
+                    this.cardToCheck = card;
+                }
+                else {
+                    this.matchedCards.push(card);
+                }
             }
             else { 
                 card.classList.remove('visible');
@@ -81,14 +121,6 @@ class ActiveGameManager {
             this.busy = false;
         }, 1000);
     }
-    //TODO not sure I need this
-    shuffleCards(cardsArray) { // Fisher-Yates Shuffle Algorithm.
-        for (let i = cardsArray.length - 1; i > 0; i--) {
-            let randIndex = Math.floor(Math.random() * (i + 1));
-            cardsArray[randIndex].style.order = i;
-            cardsArray[i].style.order = randIndex;
-        }
-    }
     getCardType(card) {
         return card.getElementsByClassName('card-value')[0].src;
     }
@@ -97,6 +129,10 @@ class ActiveGameManager {
     }
 }
 
+
+function showScore() {
+    document.getElementById('player-score').innerText = 'Score:';
+}
 
 
 function handleElementEnable(elementId, enable) {
@@ -146,7 +182,9 @@ async function getPlayerRecord() {
         handleElementEnable('#NewGameDiv', true);
         handleElementEnable('#ResumeGameDiv', false);
         handleElementEnable('#EndGameDiv', false);
-        
+
+        numOfFlips = -1;
+        lastFlippedCardId = -1;
     }
     //else allow only ResumeGame or EndGame
     else {
@@ -154,7 +192,17 @@ async function getPlayerRecord() {
         handleElementEnable('#NewGameDiv', false);
         handleElementEnable('#ResumeGameDiv', true);
         handleElementEnable('#EndGameDiv', true);
+
+        numOfFlips = result.currentNumOfFlips;
+        lastFlippedCardId = result.lastFlippedCardId;
+
     }
+
+    
+    bestScore = result.bestScore;
+    bestScoreNumberOfCards = result.bestScoreNumberOfCards;
+    gamesPlayed = result.gamesPlayed;
+    gamesWon = result.gamesWon;
 
 }
 
@@ -163,6 +211,9 @@ async function resumeGame() {
     this.baseURL = 'https://localhost:44309/api/Game/';
     var uri = this.baseURL + 'GetCurrentGameCards/';
     var result = await (await fetch(uri)).json();
+
+    handleElementEnable('#EndGameDiv', true);
+
     setupGridAndGame(result);
 }
 
@@ -176,10 +227,32 @@ async function setupNewGame() {
     var uri = this.baseURL + 'SetupNewGame/' + numOfUniqueCards;
     var result = await (await fetch(uri)).json();
 
+    numOfFlips = -1;
+    lastFlippedCardId = -1;
+
+    handleElementEnable('#EndGameDiv', true);
+
     setupGridAndGame(result);
 }
 
- 
+
+async function endCurrentGame() {
+    var uri = this.baseURL + 'EndGame/';
+    var result = await (await fetch(uri)).json();
+
+    handleElementEnable('#NewGameDiv', true);
+    handleElementEnable('#ResumeGameDiv', false);
+    handleElementEnable('#EndGameDiv', false);
+
+    numOfFlips = -1;
+    lastFlippedCardId = -1;
+    gamesPlayed++;
+
+    document.getElementById('game-ended-text').classList.add('visible');
+
+    console.log(result);
+}
+
 
 function setupGridAndGame(cardsFromServer) {
 
@@ -189,6 +262,10 @@ function setupGridAndGame(cardsFromServer) {
 
     let cards = Array.from(document.getElementsByClassName('card'));
     this.currentActiveGame = new ActiveGameManager(cards);
+
+    this.currentActiveGame.lastFlippedCardIdFromServer = lastFlippedCardId;
+    this.currentActiveGame.numberOfFlipsFromServer = numOfFlips;
+
     this.currentActiveGame.startGame();
 
     cards.forEach(card => {
@@ -265,7 +342,7 @@ async function ready() {
 
     document.getElementById('NewGameBtn').addEventListener('click', () => { setupNewGame(); });
     document.getElementById('ResumeGameBtn').addEventListener('click', () => { resumeGame(); });
-    document.getElementById('EndGameBtn').addEventListener('click', () => { gameManager.endGame(); });
+    document.getElementById('EndGameBtn').addEventListener('click', () => { endCurrentGame(); });
 
 }
 

@@ -28,65 +28,15 @@ namespace GameWebAPI.Controllers
         }
 
 
-        
-        [Route("api/Game/GetInitialData/")]
-        [HttpGet]
-        public GameData GetInitialSettings()
-        {
-            var numOfPlayableCards = _gameManager.GetMaxNumOfCards();
-            var playerRecord = _dbManager.GetPlayerRecord();
-            var gameState = _dbManager.getActiveGame();
 
-            var settings = new GameData();
-            settings.playerRecord = playerRecord;
-            settings.gameState = gameState;
-            settings.numOfPlayableCards = numOfPlayableCards;
-
-            return settings;
-
-        }
-
-
-        
-        [Route("api/Game/GetCardsForNewGame/{numOfCards:int}")]
-        [HttpGet]
-        public List<Card> StartNewGame(int numOfCards)
-        {
-            var results = new List<string>();
-
-            var newActiveGame = _gameManager.CreateNewGame(numOfCards);
-            _dbManager.StoreActiveGame(newActiveGame);
-
-            newActiveGame.cards.ForEach((c) => { results.Add(JsonConvert.SerializeObject(c)); });
-
-            return (newActiveGame.cards);
-        }
-
-
-
-
-
-
-        //Note: EndGame request from client always means player ended the game. The win condition is determined here.
+        //EndGame request from client always means player ended the game. The win condition is determined here.
         [Route("api/Game/EndGame/")]
         [HttpGet]
         public PlayerRecord EndGame()
         {
-            var playerRecord = _dbManager.GetPlayerRecord();
-            playerRecord.gamesPlayed++;
-
-            _gameManager.EndGame();
-
-            _dbManager.StorePlayerRecord(playerRecord);
-
+            var playerRecord = _gameManager.EndGame();
             return playerRecord;
-
         }
-
-
-
-        /*******************************/
-        ////smaller size endpoints
 
 
         [Route("api/Game/GetPlayerRecord/")]

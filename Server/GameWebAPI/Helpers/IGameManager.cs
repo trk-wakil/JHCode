@@ -17,6 +17,6 @@ namespace GameWebAPI.Helpers
 
         bool FlipCard(int cardId);
 
-        void EndGame(bool win=false);
+        PlayerRecord EndGame(bool win=false);
     }
 }

@@ -2,6 +2,6 @@
 <PlayerRecord xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <bestScore>0</bestScore>
   <bestScoreNumberOfCards>0</bestScoreNumberOfCards>
-  <gamesPlayed>2</gamesPlayed>
+  <gamesPlayed>3</gamesPlayed>
   <gamesWon>0</gamesWon>
 </PlayerRecord>

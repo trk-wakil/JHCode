@@ -144,34 +144,21 @@ class GameManager {
 
 class ApiHelper {
     constructor() {
-        this.baseURL = 'https://localhost:44355/api/Game/';
+        //this.baseURL = 'https://localhost:44355/api/Game/';
+        this.baseURL = 'https://localhost:44309/api/Game/'
         this.cardsFromServer;
         this.maxNumOfCardsAllowed = 0;
     }
 
     async getInitialSettings() {
-        var uri = this.baseURL + 'GetInitialSettings';
+        var uri = this.baseURL + 'GetInitialData';
         var data = await (await fetch(uri)).json();
         return data;
     }
-
-    async getMaxPlayableCardsFromServer() {
-        var uri = this.baseURL + 'GetCardCount';
-        var data = await (await fetch(uri)).json();
-        return data;
-    }
-
-
-    async getActiveGameFromServer() {
-        var uri = this.baseURL + 'GetCurrentGame';
-        var data = await (await fetch(uri)).json();
-        return data;
-    }
-
         
     async goFetchCards(numOfUniqueCards) {
         //TODO use the operation in fetch and allow using the variable
-        var uri = this.baseURL + 'GetCardsForNewGame/0';
+        var uri = this.baseURL + 'GetCardsForNewGame/' + numOfUniqueCards;
         var result = await (await fetch(uri)).json();
         return result;
     }

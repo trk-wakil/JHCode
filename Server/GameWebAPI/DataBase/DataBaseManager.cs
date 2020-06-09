@@ -17,8 +17,8 @@ namespace GameWebAPI.DataBase
 
         public ActiveGameCards GetActiveGameCards()
         {
-            var gameState = new ActiveGameCards();
-            var xmlSerializer = new XmlSerializer(typeof(GameState));
+            var activeGameCards = new ActiveGameCards();
+            var xmlSerializer = new XmlSerializer(typeof(ActiveGameCards));
 
             //first time ever
             if (!File.Exists(ActiveGameXMLFile))
@@ -29,11 +29,11 @@ namespace GameWebAPI.DataBase
             {
                 using (FileStream fs = new FileStream(ActiveGameXMLFile, FileMode.Open, FileAccess.Read))
                 {
-                    gameState = xmlSerializer.Deserialize(fs) as ActiveGameCards;
+                    activeGameCards = xmlSerializer.Deserialize(fs) as ActiveGameCards;
                 }
             }
 
-            return gameState;
+            return activeGameCards;
         }
 
 

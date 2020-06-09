@@ -61,23 +61,24 @@ namespace GameWebAPI.Helpers
         {
             var results = false;
 
-            var activeGame = _dbManager.getActiveGame();
-            activeGame.currentNumOfFlips++;
+            var activeGameCards = _dbManager.GetActiveGameCards();
+            var playerRecord = _dbManager.GetPlayerRecord();
+            playerRecord.currentNumOfFlips++;
 
-            var lastFlippedCardId = activeGame.lastFlippedCardId;
-            var flippedCard = activeGame.cards.Find(x => x.id == cardId);
+            var lastFlippedCardId = playerRecord.lastFlippedCardId;
+            var flippedCard = activeGameCards.cards.Find(x => x.id == cardId);
 
             //No flipped card to compare against
             if (lastFlippedCardId == -1)
             {
                 flippedCard.flipped = true;
-                activeGame.lastFlippedCardId = flippedCard.id;
+                playerRecord.lastFlippedCardId = flippedCard.id;
                 results = true;
             }
             else
             {
-                var lastFlippedCard = activeGame.cards.Find(x => x.id == lastFlippedCardId);
-                activeGame.lastFlippedCardId = -1;
+                var lastFlippedCard = activeGameCards.cards.Find(x => x.id == lastFlippedCardId);
+                playerRecord.lastFlippedCardId = -1;
                 //found a match
                 if (lastFlippedCard.img.Equals(flippedCard.img))
                 {
@@ -94,13 +95,13 @@ namespace GameWebAPI.Helpers
                 }
             }
 
-            _dbManager.StoreActiveGame(activeGame);
+            _dbManager.StorePlayerRecord(playerRecord);
+            _dbManager.StoreActiveGameCards(activeGameCards);
 
             if (results)
             {
                 //check for win
-                activeGame.countOfFlippedCards++;
-                if (activeGame.countOfFlippedCards == activeGame.cards.Count)
+                if (!activeGameCards.cards.Any(x => x.flipped))
                 {
                     //end game with a win
                     EndGame(true);

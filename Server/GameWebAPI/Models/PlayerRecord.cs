@@ -16,6 +16,5 @@ namespace GameWebAPI.Models
         public bool hasActiveGame = false;
         public int currentNumOfFlips = 0;
         public int lastFlippedCardId = -1;
-        public int countOfFlippedCards = 0;
     }
 }

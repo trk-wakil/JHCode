@@ -36,7 +36,7 @@ class ActiveGameManager {
     flipCard(card) {
         //Do the matching here as well as in server side.
         //but first, alert server of flipped card
-        //this.apiHelper.sendFlipRequest(card);
+        sendFlipRequest(card);
         
         if(this.canFlipCard(card)) {
             this.totalClicks++;
@@ -104,6 +104,20 @@ function handleElementEnable(elementId, enable) {
 
 
 
+
+function sendFlipRequest(card) {
+    var uri = this.baseURL + 'FlipCard/' + card.id;
+    //Think about the response.. do we need it?
+    fetch(uri);
+        // .then((response) => {
+        //     return response.json();
+        // })
+        // .then((data) => {
+        //     console.log('from Server:  ' +data);
+        // });
+}
+
+
 async function getNumOfPlayableCards() {
     this.baseURL = 'https://localhost:44309/api/Game/';
     var uri = this.baseURL + 'GetMaxPlayableCards/';
@@ -146,7 +160,7 @@ async function setupNewGame() {
     console.log('numOfUniqueCards=  ' + numOfUniqueCards );
 
     //TODO use the operation in fetch and allow using the variable
-    var uri = this.baseURL + 'GetCardsForNewGame/' + numOfUniqueCards;
+    var uri = this.baseURL + 'SetupNewGame/' + numOfUniqueCards;
     var result = await (await fetch(uri)).json();
 
     setupGridAndGame(result);

@@ -126,11 +126,11 @@ namespace GameWebAPI.Controllers
         }
 
 
-        [Route("api/Game/GetCurrentGame/")]
+        [Route("api/Game/GetCurrentGameCards/")]
         [HttpGet]
-        public GameState GetCurrentGame()
+        public ActiveGameCards GetCurrentGameCards()
         {
-            var currentGame = _dbManager.getActiveGame();
+            var currentGame = _dbManager.GetActiveGameCards();
             return currentGame;
         }
 

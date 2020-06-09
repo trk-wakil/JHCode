@@ -23,10 +23,11 @@ namespace GameWebAPI.Helpers
         {
             var imagesStr = ImageFilesHandler.GetAllImagesAsStr();
 
-            if (numOfCards != 0)
-                imagesStr = imagesStr.OrderBy(x => Guid.NewGuid()).Take(numOfCards).ToList();
+            numOfCards = (numOfCards == 0 ? imagesStr.Count : numOfCards);
 
-            var fullDeck = BuildFullDeck(imagesStr);
+            imagesStr = imagesStr.OrderBy(x => Guid.NewGuid()).Take(numOfCards).ToList();
+
+            var fullDeck = DoubleTheCards(imagesStr);
 
             var newGame = new GameState
             {
@@ -76,6 +77,17 @@ namespace GameWebAPI.Helpers
 
             _dbManager.StoreActiveGame(activeGame);
 
+            if (results)
+            {
+                //check for win
+                activeGame.countOfFlippedCards++;
+                if (activeGame.countOfFlippedCards == activeGame.cards.Count)
+                {
+                    //end game with a win
+                    EndGame(true);
+                }
+            }
+
             return results;
         }
 
@@ -86,12 +98,51 @@ namespace GameWebAPI.Helpers
         }
 
 
+        public void EndGame(bool win = false)
+        {
+            var currentActiveGame = _dbManager.getActiveGame();
+            var playerRecord = _dbManager.GetPlayerRecord();
+
+            if (win)
+            {
+                playerRecord.gamesPlayed++;
+                playerRecord.gamesWon++;
+
+                if (playerRecord.bestScore > currentActiveGame.currentNumOfFlips)
+                {
+                    playerRecord.bestScore = currentActiveGame.currentNumOfFlips;
+                    playerRecord.bestScoreNumberOfCards = currentActiveGame.cards.Count;
+                }                
+            }
+
+            _dbManager.StorePlayerRecord(playerRecord);
+            _dbManager.DeleteActiveGame();
+        }
+
+
+
+
+        private List<Card> DoubleTheCards(List<string> cardImages)
+        {
+            var gameCards = new List<Card>();
+            int anId = 0;
+
+            foreach (var c in cardImages)
+            {
+                gameCards.Add(new Card { id = anId++, img = c });
+                gameCards.Add(new Card { id = anId++, img = c });
+            }
+
+            gameCards = gameCards.OrderBy(x => Guid.NewGuid()).Take(gameCards.Count).ToList();
+            return gameCards;
+        }
+
 
 
         private List<Card> BuildFullDeck(List<string> cardImages)
         {
             //TODO check this number
-            int maxId = cardImages.Count * 2;
+            int maxId = (cardImages.Count * 2) -1;
 
             var gameCards = new List<Card>();
 

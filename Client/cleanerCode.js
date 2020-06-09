@@ -6,8 +6,6 @@ class GameManager {
         this.apiHelper = new ApiHelper();
         this.maxCountOfCards;
         this.currentActiveGame;
-        this.numberOfAvailableCards;
-
         this.playerScores;
         
     }
@@ -46,10 +44,12 @@ class GameManager {
 
     resumeGame() {
         this.setupGridAndGame(this.currentActiveGame.cards);
+        document.getElementById('flips').innerHTML = this.currentActiveGame.currentNumOfFlips;
     }
 
 
     async beginNewGame() {
+        console.log('beginNewGame');
         this.apiHelper.goFetchCards().then((data) => {
             this.setupGridAndGame(data);
         });
@@ -62,8 +62,9 @@ class GameManager {
     //TODO change to RESTART Game
     async endGame() {
         this.apiHelper.endGame();
-        var game_container = document.getElementsByClassName('game-container')[0];
-        //game_container.innerHTML = "";
+        var allCards = document.getElementsByClassName('card');
+        console.log(allCards.length);
+        //allCards.innerHTML="";
 
         this.handleElementEnable('#NewGameDiv', true);
         this.handleElementEnable('#ResumeGameDiv', false);
@@ -73,6 +74,8 @@ class GameManager {
 
     
     setupGridAndGame(cardsFromServer) {
+
+        console.log(cardsFromServer);
 
         this.fillGrid(cardsFromServer);
 
@@ -144,10 +147,9 @@ class GameManager {
 
 class ApiHelper {
     constructor() {
-        //this.baseURL = 'https://localhost:44355/api/Game/';
         this.baseURL = 'https://localhost:44309/api/Game/'
         this.cardsFromServer;
-        this.maxNumOfCardsAllowed = 0;
+        //this.maxNumOfCardsAllowed = 0;
     }
 
     async getInitialSettings() {
@@ -156,7 +158,10 @@ class ApiHelper {
         return data;
     }
         
-    async goFetchCards(numOfUniqueCards) {
+    async goFetchCards() {
+        
+        var numOfUniqueCards = document.getElementById("NumUniqueCards").value;
+        console.log('numOfUniqueCards=  ' + numOfUniqueCards );
         //TODO use the operation in fetch and allow using the variable
         var uri = this.baseURL + 'GetCardsForNewGame/' + numOfUniqueCards;
         var result = await (await fetch(uri)).json();
@@ -196,7 +201,6 @@ class ActiveGameManager {
     constructor(cards, apiHelper) {
         this.cardsArray = cards;
         this.apiHelper = apiHelper;
-        //TODO ticker is score. Maybe allow passing it here on resumed game
         this.ticker = document.getElementById('flips');
     }
 

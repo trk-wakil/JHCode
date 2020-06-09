@@ -14,6 +14,8 @@ namespace GameWebAPI.DataBase
 
         void StoreActiveGame(GameState gameState);
 
+        void DeleteActiveGame();
+
         PlayerRecord GetPlayerRecord();
 
         void StorePlayerRecord(PlayerRecord playerRecord);

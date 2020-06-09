@@ -1,2 +1,4 @@
 
 Client/.vscode/settings.json
+Server/GameWebAPI/PlayerRecord.xml
+Server/GameWebAPI/ActiveGame.xml

@@ -50,6 +50,15 @@ namespace GameWebAPI.DataBase
         }
 
 
+        public void DeleteActiveGame()
+        {
+            if (File.Exists(ActiveGameXMLFile))
+            {
+                File.Delete(ActiveGameXMLFile);
+            }
+        }
+
+
 
         public PlayerRecord GetPlayerRecord()
         {

@@ -77,7 +77,7 @@ namespace GameWebAPI.Controllers
 
 
 
-
+        //Note: EndGame request from client always means player ended the game. The win condition is determined here.
         [Route("api/Game/EndGame/")]
         [HttpGet]
         public PlayerRecord EndGame()
@@ -85,21 +85,9 @@ namespace GameWebAPI.Controllers
             var playerRecord = _dbManager.GetPlayerRecord();
             playerRecord.gamesPlayed++;
 
-            var activeGame = _dbManager.getActiveGame();
-
-            //find out if this was a win game or not
-            if (activeGame.cards.TrueForAll(x => x.flipped))
-            {
-                playerRecord.gamesWon++;
-                if (activeGame.currentNumOfFlips < playerRecord.bestScore)
-                {
-                    playerRecord.bestScore = activeGame.currentNumOfFlips;
-                    playerRecord.bestScoreNumberOfCards = activeGame.cards.Count;
-                }
-            }
+            _gameManager.EndGame();
 
             _dbManager.StorePlayerRecord(playerRecord);
-            _dbManager.StoreActiveGame(null);
 
             return playerRecord;
 

@@ -25,7 +25,8 @@ namespace GameWebAPI.DataBase
             //first time ever
             if (!File.Exists(ActiveGameXMLFile))
             {
-                StoreActiveGame(gameState);
+                //StoreActiveGame(gameState);
+                return null;
             }
             else
             {

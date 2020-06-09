@@ -47,8 +47,6 @@ namespace GameWebAPI.Controllers
         }
 
 
-
-
         
         [Route("api/Game/GetCardsForNewGame/{numOfCards:int}")]
         [HttpGet]
@@ -90,6 +88,32 @@ namespace GameWebAPI.Controllers
             _dbManager.StorePlayerRecord(playerRecord);
 
             return playerRecord;
+
+        }
+
+
+
+        /*******************************/
+        ////smaller size endpoints
+        
+
+
+        [Route("api/Game/GetMaxPlayableCards/")]
+        [HttpGet]
+        public int GetMaxPlayableCards()
+        {
+            var numOfPlayableCards = _gameManager.GetMaxNumOfCards();
+            return numOfPlayableCards;
+
+        }
+
+
+        [Route("api/Game/GetCurrentGame/")]
+        [HttpGet]
+        public GameState GetCurrentGame()
+        {
+            var currentGame = _dbManager.getActiveGame();
+            return currentGame;
 
         }
 

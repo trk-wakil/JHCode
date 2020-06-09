@@ -207,7 +207,6 @@ class ActiveGameManager {
     startGame() {
         console.log("startGame");
         this.totalClicks = 0;
-        this.timeRemaining = this.totalTime;
         this.cardToCheck = null;
         this.matchedCards = [];
         this.hideCards();

@@ -16,17 +16,36 @@ namespace GameWebAPI.Helpers
         {
             _dbManager = dataBaseManager;
         }
-        
+
+
+
+
+        //TODO this replaces CreateNewGame
+        public ActiveGameCards SetupNewGame(int numOfCards)
+        {
+            var imagesStr = ImageFilesHandler.GetAllImagesAsStr();
+            numOfCards = (numOfCards == 0 ? imagesStr.Count : numOfCards);
+            imagesStr = imagesStr.OrderBy(x => Guid.NewGuid()).Take(numOfCards).ToList();
+            var fullDeck = DoubleTheCards(imagesStr);
+
+            var activeGameCards = new ActiveGameCards { cards = fullDeck };
+
+            _dbManager.StoreActiveGameCards(activeGameCards);
+
+            var playerRecord = _dbManager.GetPlayerRecord();
+            playerRecord.hasActiveGame = true;
+            _dbManager.StorePlayerRecord(playerRecord);
+
+            return activeGameCards;
+        }
+
 
 
         public GameState CreateNewGame(int numOfCards =0)
         {
             var imagesStr = ImageFilesHandler.GetAllImagesAsStr();
-
             numOfCards = (numOfCards == 0 ? imagesStr.Count : numOfCards);
-
             imagesStr = imagesStr.OrderBy(x => Guid.NewGuid()).Take(numOfCards).ToList();
-
             var fullDeck = DoubleTheCards(imagesStr);
 
             var newGame = new GameState
@@ -177,5 +196,6 @@ namespace GameWebAPI.Helpers
             return theId;
 
         }
+
     }
 }

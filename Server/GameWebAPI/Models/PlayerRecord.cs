@@ -12,5 +12,10 @@ namespace GameWebAPI.Models
         public int bestScoreNumberOfCards = 0;
         public int gamesPlayed = 0;
         public int gamesWon = 0;
+
+        public bool hasActiveGame = false;
+        public int currentNumOfFlips = 0;
+        public int lastFlippedCardId = -1;
+        public int countOfFlippedCards = 0;
     }
 }

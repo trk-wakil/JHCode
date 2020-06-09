@@ -10,6 +10,9 @@ namespace GameWebAPI.Helpers
     {
         GameState CreateNewGame(int numOfCards);
 
+        //TODO this would replace the above one
+        ActiveGameCards SetupNewGame(int numOfCards);
+
         int GetMaxNumOfCards();
 
         bool FlipCard(int cardId);

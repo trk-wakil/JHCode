@@ -185,6 +185,7 @@
     <Compile Include="Helpers\GameManager.cs" />
     <Compile Include="Helpers\IGameManager.cs" />
     <Compile Include="Helpers\ImageFilesHandler.cs" />
+    <Compile Include="Models\ActiveGameCards.cs" />
     <Compile Include="Models\Card.cs" />
     <Compile Include="Models\GameData.cs" />
     <Compile Include="Models\GameState.cs" />

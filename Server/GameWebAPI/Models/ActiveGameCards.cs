@@ -5,16 +5,8 @@ using System.Web;
 
 namespace GameWebAPI.Models
 {
-    public class GameState
+    public class ActiveGameCards
     {
-
         public List<Card> cards = new List<Card>();
-
-        public int currentNumOfFlips = 0;
-        public int lastFlippedCardId = -1;
-        
-
-        public int countOfFlippedCards = 0;
-
     }
 }

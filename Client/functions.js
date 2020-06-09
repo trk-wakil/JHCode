@@ -4,9 +4,8 @@
 
 
 class ActiveGameManager {
-    constructor(cards, apiHelper) {
+    constructor(cards) {
         this.cardsArray = cards;
-        this.apiHelper = apiHelper;
         this.ticker = document.getElementById('flips');
     }
 
@@ -37,7 +36,7 @@ class ActiveGameManager {
     flipCard(card) {
         //Do the matching here as well as in server side.
         //but first, alert server of flipped card
-        this.apiHelper.sendFlipRequest(card);
+        //this.apiHelper.sendFlipRequest(card);
         
         if(this.canFlipCard(card)) {
             this.totalClicks++;
@@ -116,35 +115,99 @@ async function getNumOfPlayableCards() {
 
 
 
-async function getCurrentActiveGame() {
+async function getPlayerRecord() {
     this.baseURL = 'https://localhost:44309/api/Game/';
-    var uri = this.baseURL + 'GetCurrentGame/';
+    var uri = this.baseURL + 'GetPlayerRecord/';
     var result = await (await fetch(uri)).json();
 
-
     //if no current game exists, allow only StartNewGame
-    if (!result  ||  !result.cards.length ) {
+    if (result.hasActiveGame == false) {
         console.log("NO GAME EXISTS");
         handleElementEnable('#NewGameDiv', true);
         handleElementEnable('#ResumeGameDiv', false);
         handleElementEnable('#EndGameDiv', false);
+        
     }
     //else allow only ResumeGame or EndGame
     else {
-        //this.resumeGame();
         console.log("found current game");
         handleElementEnable('#NewGameDiv', false);
         handleElementEnable('#ResumeGameDiv', true);
         handleElementEnable('#EndGameDiv', true);
     }
 
-    console.log('---> ' + result);
-    //document.getElementById("NumUniqueCards").value = result;
-    
-    //return result;
 }
 
 
+
+async function setupNewGame() {
+
+    var numOfUniqueCards = document.getElementById("NumUniqueCards").value;
+    console.log('numOfUniqueCards=  ' + numOfUniqueCards );
+
+    //TODO use the operation in fetch and allow using the variable
+    var uri = this.baseURL + 'GetCardsForNewGame/' + numOfUniqueCards;
+    var result = await (await fetch(uri)).json();
+
+    setupGridAndGame(result);
+}
+
+ 
+
+function setupGridAndGame(cardsFromServer) {
+
+    console.log(cardsFromServer);
+
+    this.fillGrid(cardsFromServer);
+
+    let cards = Array.from(document.getElementsByClassName('card'));
+    this.currentActiveGame = new ActiveGameManager(cards);
+    this.currentActiveGame.startGame();
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            this.currentActiveGame.flipCard(card);
+        });
+    });
+}
+
+
+function fillGrid(data) {
+
+    var game_container = document.getElementsByClassName('game-container')[0];
+
+    for (var i=0; i < data.length; i++) {
+        var cardData = data[i];
+            
+        var cardBack = document.createElement("div");
+        cardBack.classList.add("card-back");
+        cardBack.classList.add("card-face");
+
+        var imgBack = document.createElement("img");
+        imgBack.classList.add("spider");
+        imgBack.src = "Assets/Spider.png";
+        cardBack.appendChild(imgBack);
+        
+        var cardFront = document.createElement("div");
+        cardFront.classList.add("card-front");
+        cardFront.classList.add("card-face");
+
+        var imgFront = document.createElement("img");
+        imgFront.classList.add("card-value");
+        imgFront.src = "data:image/png;base64," + cardData.img;
+        cardFront.appendChild(imgFront);
+
+        var newCard = document.createElement("div");
+        newCard.setAttribute("id", cardData.id);
+        //add attribute flipped
+        newCard.setAttribute("flipped", JSON.stringify(cardData.flipped));
+        newCard.classList.add("card");
+        newCard.appendChild(cardBack);
+        newCard.appendChild(cardFront);
+
+        game_container.appendChild(newCard);
+    }
+}
 
 
 
@@ -171,9 +234,9 @@ async function ready() {
         });
     });
 
-    document.getElementById('welcome').addEventListener('click', () => { getCurrentActiveGame(); });
+    document.getElementById('welcome').addEventListener('click', () => { getPlayerRecord(); });
 
-    document.getElementById('NewGameBtn').addEventListener('click', () => { gameManager.beginNewGame(); });
+    document.getElementById('NewGameBtn').addEventListener('click', () => { setupNewGame(); });
     document.getElementById('ResumeGameBtn').addEventListener('click', () => { gameManager.resumeGame(); });
     document.getElementById('EndGameBtn').addEventListener('click', () => { gameManager.endGame(); });
 

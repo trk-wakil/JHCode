@@ -19,5 +19,13 @@ namespace GameWebAPI.DataBase
         PlayerRecord GetPlayerRecord();
 
         void StorePlayerRecord(PlayerRecord playerRecord);
+
+
+        //TODO ActiveGameCards logic will replace GameState
+        ActiveGameCards GetActiveGameCards();
+
+
+        void StoreActiveGameCards(ActiveGameCards activeGameCards);
+
     }
 }

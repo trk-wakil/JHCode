@@ -64,14 +64,6 @@ namespace GameWebAPI.Controllers
 
 
 
-        [Route("api/Game/FlipCard/{cardId:int}")]
-        [HttpGet]
-        public bool FlipCard(int cardId)
-        {
-            var result = _gameManager.FlipCard(cardId);
-
-            return result;
-        }
 
 
 
@@ -114,6 +106,7 @@ namespace GameWebAPI.Controllers
             return numOfPlayableCards;
         }
 
+
         [Route("api/Game/SetupNewGame/{numOfCards:int}")]
         [HttpGet]
         public List<Card> SetupNewGame(int numOfCards)
@@ -121,17 +114,27 @@ namespace GameWebAPI.Controllers
             var results = new List<string>();
             var newActiveGame = _gameManager.SetupNewGame(numOfCards);
             newActiveGame.cards.ForEach((c) => { results.Add(JsonConvert.SerializeObject(c)); });
-
             return (newActiveGame.cards);
+        }
+
+
+        [Route("api/Game/FlipCard/{cardId:int}")]
+        [HttpGet]
+        public bool FlipCard(int cardId)
+        {
+            var result = _gameManager.FlipCard(cardId);
+            return result;
         }
 
 
         [Route("api/Game/GetCurrentGameCards/")]
         [HttpGet]
-        public ActiveGameCards GetCurrentGameCards()
+        public List<Card> GetCurrentGameCards()
         {
+            var results = new List<string>();
             var currentGame = _dbManager.GetActiveGameCards();
-            return currentGame;
+            currentGame.cards.ForEach((c) => { results.Add(JsonConvert.SerializeObject(c)); });
+            return (currentGame.cards);
         }
 
 

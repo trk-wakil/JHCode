@@ -26,10 +26,16 @@ class ActiveGameManager {
     //TODO exclude previously uncovered card when hiding on resume game
     hideCards() {
         this.cardsArray.forEach(card => {
-            card.classList.remove('visible');
-            card.classList.remove('matched');    
-            if (card.getAttribute('flipped') === 'true') {
+            console.log('what is flipped:  ' +card.getAttribute('flipped'));
+            // card.classList.remove('visible');
+            // card.classList.remove('matched');    
+            if (card.getAttribute('flipped') == 'true') {
                 card.classList.add('visible');
+            }
+            else { 
+                card.classList.remove('visible');
+                card.classList.remove('matched');    
+                console.log('flipped says false'); 
             }
         });
     }
@@ -153,6 +159,13 @@ async function getPlayerRecord() {
 }
 
 
+async function resumeGame() {
+    this.baseURL = 'https://localhost:44309/api/Game/';
+    var uri = this.baseURL + 'GetCurrentGameCards/';
+    var result = await (await fetch(uri)).json();
+    setupGridAndGame(result);
+}
+
 
 async function setupNewGame() {
 
@@ -251,7 +264,7 @@ async function ready() {
     document.getElementById('welcome').addEventListener('click', () => { getPlayerRecord(); });
 
     document.getElementById('NewGameBtn').addEventListener('click', () => { setupNewGame(); });
-    document.getElementById('ResumeGameBtn').addEventListener('click', () => { gameManager.resumeGame(); });
+    document.getElementById('ResumeGameBtn').addEventListener('click', () => { resumeGame(); });
     document.getElementById('EndGameBtn').addEventListener('click', () => { gameManager.endGame(); });
 
 }

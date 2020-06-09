@@ -16,8 +16,8 @@ namespace GameWebAPI.Controllers
     public class GameController : ApiController
     {
 
-        IDataBaseManager _dbManager;
-        IGameManager _gameManager;
+        private IDataBaseManager _dbManager;
+        private IGameManager _gameManager;
 
 
         public GameController(IDataBaseManager dbManager, IGameManager gameManager)
@@ -70,48 +70,40 @@ namespace GameWebAPI.Controllers
         [HttpGet]
         public bool FlipCard(int cardId)
         {
-            var results = false;
+            var result = _gameManager.FlipCard(cardId);
 
-            var activeGame = _dbManager.getActiveGame();
-            activeGame.currentNumOfFlips++;
-
-            var lastFlippedCardId = activeGame.lastFlippedCardId;
-            var flippedCard = activeGame.cards.Find(x => x.id == cardId);
-
-            //No flipped card to compare against
-            if (lastFlippedCardId == -1)
-            {
-                flippedCard.flipped = true;
-                activeGame.lastFlippedCardId = flippedCard.id;
-                results = true;
-            }
-            else
-            {
-                var lastFlippedCard = activeGame.cards.Find(x => x.id == lastFlippedCardId);
-                activeGame.lastFlippedCardId = -1;
-                //found a match
-                if (lastFlippedCard.img.Equals(flippedCard.img))
-                {
-                    flippedCard.flipped = true;
-                    lastFlippedCard.flipped = true;
-                    results = true;
-                }
-                //No match
-                else
-                {
-                    flippedCard.flipped = false;
-                    lastFlippedCard.flipped = false;
-                    results = false;
-                }
-            }
-
-            _dbManager.StoreActiveGame(activeGame);
-
-
-            return results;
-
+            return result;
         }
 
+
+
+
+        [Route("api/Game/EndGame/")]
+        [HttpGet]
+        public PlayerRecord EndGame()
+        {
+            var playerRecord = _dbManager.GetPlayerRecord();
+            playerRecord.gamesPlayed++;
+
+            var activeGame = _dbManager.getActiveGame();
+
+            //find out if this was a win game or not
+            if (activeGame.cards.TrueForAll(x => x.flipped))
+            {
+                playerRecord.gamesWon++;
+                if (activeGame.currentNumOfFlips < playerRecord.bestScore)
+                {
+                    playerRecord.bestScore = activeGame.currentNumOfFlips;
+                    playerRecord.bestScoreNumberOfCards = activeGame.cards.Count;
+                }
+            }
+
+            _dbManager.StorePlayerRecord(playerRecord);
+            _dbManager.StoreActiveGame(null);
+
+            return playerRecord;
+
+        }
 
 
 

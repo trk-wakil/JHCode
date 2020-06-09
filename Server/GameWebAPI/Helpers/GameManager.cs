@@ -1,4 +1,5 @@
-﻿using GameWebAPI.Models;
+﻿using GameWebAPI.DataBase;
+using GameWebAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,13 @@ namespace GameWebAPI.Helpers
     public class GameManager : IGameManager
     {
 
-        Random _rnd = new Random();
+        private IDataBaseManager _dbManager;
+
+        public GameManager(IDataBaseManager dataBaseManager)
+        {
+            _dbManager = dataBaseManager;
+        }
+        
 
 
         public GameState CreateNewGame(int numOfCards =0)
@@ -26,14 +33,50 @@ namespace GameWebAPI.Helpers
                 cards = fullDeck
             };
 
-
             return newGame;
         }
 
 
-        public void FlipCard(int cardId)
+        public bool FlipCard(int cardId)
         {
-            throw new NotImplementedException();
+            var results = false;
+
+            var activeGame = _dbManager.getActiveGame();
+            activeGame.currentNumOfFlips++;
+
+            var lastFlippedCardId = activeGame.lastFlippedCardId;
+            var flippedCard = activeGame.cards.Find(x => x.id == cardId);
+
+            //No flipped card to compare against
+            if (lastFlippedCardId == -1)
+            {
+                flippedCard.flipped = true;
+                activeGame.lastFlippedCardId = flippedCard.id;
+                results = true;
+            }
+            else
+            {
+                var lastFlippedCard = activeGame.cards.Find(x => x.id == lastFlippedCardId);
+                activeGame.lastFlippedCardId = -1;
+                //found a match
+                if (lastFlippedCard.img.Equals(flippedCard.img))
+                {
+                    flippedCard.flipped = true;
+                    lastFlippedCard.flipped = true;
+                    results = true;
+                }
+                //No match
+                else
+                {
+                    flippedCard.flipped = false;
+                    lastFlippedCard.flipped = false;
+                    results = false;
+                }
+            }
+
+            _dbManager.StoreActiveGame(activeGame);
+
+            return results;
         }
 
 
@@ -70,6 +113,7 @@ namespace GameWebAPI.Helpers
 
         private int FindEmptyId(List<Card> cards, int maxId)
         {
+            var _rnd = new Random();
             var foundIt = false;
             int theId = 0;
 

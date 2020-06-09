@@ -12,6 +12,6 @@ namespace GameWebAPI.Helpers
 
         int GetMaxNumOfCards();
 
-        void FlipCard(int cardId);
+        bool FlipCard(int cardId);
     }
 }
